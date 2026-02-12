@@ -166,30 +166,30 @@
 > Depends on all of Phase 1 Core being complete. Each task builds on the previous.
 
 ### 2.1 — Application shell (`app.py`, `__main__.py`)
-- [ ] `app.py`: `RemoraApp` class — create `QApplication`, set app name/org, apply Fusion style
-- [ ] `__main__.py`: `main()` → instantiate `RemoraApp`, show `MainWindow`, exec event loop
-- [ ] Verify `python -m remora_gui` launches a window (can be empty)
+- [x] `app.py`: `RemoraApp` class — create `QApplication`, set app name/org, apply Fusion style
+- [x] `__main__.py`: `main()` → instantiate `RemoraApp`, show `MainWindow`, exec event loop
+- [x] Verify `python -m remora_gui` launches a window (can be empty)
 
 ### 2.2 — Dark theme stylesheet (`resources/style.qss`)
-- [ ] Write `style.qss` with dark ocean theme from PRD §9.1:
+- [x] Write `style.qss` with dark ocean theme from PRD §9.1:
   - Background `#1e1e2e`, surface `#2a2a3e`, text `#e2e8f0`, muted `#a0aec0`
   - Accent teal `#2c7a7b`, blue `#4299e1`
   - Style: QMainWindow, QTabWidget, QGroupBox, QPushButton, QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox, QCheckBox, QPlainTextEdit, QToolBar, QMenuBar, QStatusBar, QScrollArea, QSplitter, QTableWidget, QProgressBar, QToolTip
-- [ ] Load stylesheet in `app.py` on startup
-- [ ] Verify app renders with dark theme
+- [x] Load stylesheet in `app.py` on startup
+- [x] Verify app renders with dark theme
 
 ### 2.3 — Main window skeleton (`ui/main_window.py`)
-- [ ] `MainWindow(QMainWindow)` with:
+- [x] `MainWindow(QMainWindow)` with:
   - Menu bar: File (New Project, Open, Save, Export Input File, Quit), Edit (Preferences), Help (About)
   - Toolbar: New, Open, Save, Run, Stop buttons (icons from QStyle standard pixmaps)
   - Central widget: `QTabWidget` with 3 tabs — "Config", "Run", "Output" (placeholder widgets for now)
   - Status bar: project name label, machine label
   - Keyboard shortcuts from PRD §9.3
-- [ ] Connect menu actions to stub slots (print to console for now)
-- [ ] Verify window renders with menus, toolbar, tabs, status bar
+- [x] Connect menu actions to stub slots (print to console for now)
+- [x] Verify window renders with menus, toolbar, tabs, status bar
 
 ### 2.4 — Reusable widgets (`ui/widgets/`)
-- [ ] `parameter_widget.py`: `ParameterWidget` — factory that creates the right input widget based on `REMORAParameter.dtype`:
+- [x] `parameter_widget.py`: `ParameterWidget` — factory that creates the right input widget based on `REMORAParameter.dtype`:
   - `int` → `QSpinBox` (set min/max from schema)
   - `float` → `QDoubleSpinBox` with scientific notation support (custom `ScientificSpinBox` subclass with `textFromValue`/`valueFromText` overrides)
   - `bool` → `QCheckBox`
@@ -199,96 +199,96 @@
   - `string_list` → `QLineEdit` with space-separated values
   - Each widget: label on left, input on right, tooltip = `description` + `units` + range
   - Signal: `value_changed(key: str, value: Any)`
-- [ ] `vector3_widget.py`: `Vector3Widget` — 3 spin boxes in a row with x/y/z labels
+- [x] `vector3_widget.py`: `Vector3Widget` — 3 spin boxes in a row with x/y/z labels
   - Support both int and float modes
   - Signal: `value_changed(list[int | float])`
-- [ ] `enum_combo.py`: `EnumComboBox` — `QComboBox` wrapper that emits the enum string value
-- [ ] `file_picker.py`: `FilePickerWidget` — `QLineEdit` + browse button, returns path string
-- [ ] `collapsible_group.py`: `CollapsibleGroupBox` — `QGroupBox` that can collapse/expand its contents with animation
-- [ ] **Test:** `test_widgets.py` (pytest-qt) — instantiate each widget, set value, read value back, verify `value_changed` signal fires
+- [x] `enum_combo.py`: `EnumComboBox` — `QComboBox` wrapper that emits the enum string value
+- [x] `file_picker.py`: `FilePickerWidget` — `QLineEdit` + browse button, returns path string
+- [x] `collapsible_group.py`: `CollapsibleGroupBox` — `QGroupBox` that can collapse/expand its contents with animation
+- [x] **Test:** `test_widgets.py` (pytest-qt) — instantiate each widget, set value, read value back, verify `value_changed` signal fires
 
 ### 2.5 — Config editor panel base + auto-generation (`ui/config_editor/`)
-- [ ] `base_panel.py`: `ConfigPanel(QScrollArea)` base class:
+- [x] `base_panel.py`: `ConfigPanel(QScrollArea)` base class:
   - `__init__(group_name: str)` — reads `PARAMETER_SCHEMA[group_name]`, auto-generates `ParameterWidget` for each parameter
   - Handles `depends_on`: connect dependency widget's `value_changed` to show/hide dependent widgets
   - `get_values() -> dict[str, Any]` — collect all current values
   - `set_values(params: dict)` — populate widgets from dict
   - `reset_to_defaults()` — reset all widgets to schema defaults
   - Signal: `values_changed(dict)` — emitted on any widget change
-- [ ] `domain_panel.py`: extends `ConfigPanel("domain")`:
-  - Adds a computed info box showing Δx, Δy, Δz (auto-updates when `prob_lo`/`prob_hi`/`n_cell` change)
-- [ ] `physics_panel.py`: extends `ConfigPanel("physics")` — no special additions
-- [ ] `mixing_panel.py`: extends `ConfigPanel("mixing")` — GLS params hidden when mixing_type != gls
-- [ ] `boundary_panel.py`: extends `ConfigPanel("boundary")` — 6 dropdowns, one per face
-- [ ] `advection_panel.py`: extends `ConfigPanel("advection")`
-- [ ] `output_panel.py`: extends `ConfigPanel("output")`
-- [ ] `timing_panel.py`: extends `ConfigPanel("timing")`
-- [ ] `parallel_panel.py`: extends `ConfigPanel("parallel")`
+- [x] `domain_panel.py`: extends `ConfigPanel("domain")`:
+  - Adds a computed info box showing dx, dy, dz (auto-updates when `prob_lo`/`prob_hi`/`n_cell` change)
+- [x] `physics_panel.py`: extends `ConfigPanel("physics")` — no special additions
+- [x] `mixing_panel.py`: extends `ConfigPanel("mixing")` — GLS params hidden when mixing_type != gls
+- [x] `boundary_panel.py`: extends `ConfigPanel("boundary")` — 6 dropdowns, one per face
+- [x] `advection_panel.py`: extends `ConfigPanel("advection")`
+- [x] `output_panel.py`: extends `ConfigPanel("output")`
+- [x] `timing_panel.py`: extends `ConfigPanel("timing")`
+- [x] `parallel_panel.py`: extends `ConfigPanel("parallel")`
 
 ### 2.6 — Raw text editor (`ui/config_editor/raw_editor.py`)
-- [ ] `RawEditor(QWidget)` containing a `QPlainTextEdit` with:
+- [x] `RawEditor(QWidget)` containing a `QPlainTextEdit` with:
   - Syntax highlighting via `QSyntaxHighlighter`: comments green, keys white, values blue, `=` muted
   - Line numbers (custom `QPlainTextEdit` subclass or gutter widget)
   - Monospace font
-- [ ] `get_text() -> str` and `set_text(text: str)`
-- [ ] Signal: `text_changed(str)`
+- [x] `get_text() -> str` and `set_text(text: str)`
+- [x] Signal: `text_changed(str)`
 
 ### 2.7 — Config editor tab assembly (`ui/config_editor/__init__.py` or `config_tab.py`)
-- [ ] `ConfigEditorTab(QWidget)`:
+- [x] `ConfigEditorTab(QWidget)`:
   - Left side: `QTabWidget` (or vertical button bar) with sub-tabs for each panel: Domain, Physics, Mixing, BCs, Advection, Output, Timing, Parallel
   - Right side (togglable): Raw editor panel
   - **Two-way sync**: form changes → update raw text; raw text edits → update form (debounced 500ms)
   - Bottom: validation panel showing `ValidationMessage` list with severity icons, clickable to jump to parameter
-- [ ] Wire up to `MainWindow` as the "Config" tab content
+- [x] Wire up to `MainWindow` as the "Config" tab content
 
 ### 2.8 — Execution UI (`ui/execution/`)
-- [ ] `log_viewer.py`: `LogViewer(QPlainTextEdit)`:
+- [x] `log_viewer.py`: `LogViewer(QPlainTextEdit)`:
   - Read-only, monospace, auto-scroll to bottom
   - `append_stdout(line)`, `append_stderr(line)` — stderr in red
   - Max 100k lines buffer with pruning
   - Copy/clear buttons
-- [ ] `run_panel.py`: `RunPanel(QWidget)`:
+- [x] `run_panel.py`: `RunPanel(QWidget)`:
   - Machine selector dropdown (populated from `AppSettings.get_machine_profiles()`)
   - MPI process count spinbox
   - Run button (green), Stop button (red)
   - Progress bar (updated from execution engine's `on_progress`)
   - Embedded `LogViewer`
   - Status label: "Ready" / "Running (step 50/1000)" / "Completed (exit 0)" / "Failed (exit 1)"
-- [ ] Wire to `LocalExecutionEngine`: Run button → generate input file → `engine.start()` → stream logs
-- [ ] Wire up to `MainWindow` as the "Run" tab content
+- [x] Wire to `LocalExecutionEngine`: Run button → generate input file → `engine.start()` → stream logs
+- [x] Wire up to `MainWindow` as the "Run" tab content
 
 ### 2.9 — Dialogs (`ui/dialogs/`)
-- [ ] `new_project_dialog.py`: `NewProjectDialog(QDialog)`:
+- [x] `new_project_dialog.py`: `NewProjectDialog(QDialog)`:
   - Fields: project name, description, base directory (with browse)
   - Template selector (dropdown or grid of cards from `list_templates()`)
   - OK/Cancel buttons
   - On OK: call `Project.new()`, populate config editor from template
-- [ ] `template_picker_dialog.py`: `TemplatePickerDialog(QDialog)`:
+- [x] `template_picker_dialog.py`: `TemplatePickerDialog(QDialog)`:
   - Grid of cards: template name, description, category badge
   - Preview of key parameters on hover/select
   - Select + OK loads template into config editor
-- [ ] `machine_config_dialog.py`: `MachineConfigDialog(QDialog)`:
+- [x] `machine_config_dialog.py`: `MachineConfigDialog(QDialog)`:
   - List of machine profiles on left, detail form on right
   - Add/Edit/Delete buttons
   - Form fields for all `MachineProfile` fields
   - "Test" button: runs executable with `--help` flag or `echo ok` over SSH
-- [ ] `preferences_dialog.py`: `PreferencesDialog(QDialog)`:
+- [x] `preferences_dialog.py`: `PreferencesDialog(QDialog)`:
   - General tab: default project dir, auto-save interval, theme toggle
   - Machines tab: embed `MachineConfigDialog`
   - Editor tab: font size, show/hide advanced params
 
 ### 2.10 — Project browser sidebar (`ui/project/`)
-- [ ] `project_browser.py`: `ProjectBrowser(QDockWidget)`:
+- [x] `project_browser.py`: `ProjectBrowser(QDockWidget)`:
   - Tree view: Project → Runs (with status icons: draft/running/completed/failed)
   - Right-click context menu: Rename, Delete, Duplicate, Open Output Folder
   - Double-click run → load its params into config editor
-- [ ] `run_history.py`: `RunHistory(QWidget)`:
+- [x] `run_history.py`: `RunHistory(QWidget)`:
   - Table: run name, status, date, machine, duration, notes
   - Sortable columns
   - Connect to project browser for navigation
 
 ### 2.11 — Wire everything together
-- [ ] `MainWindow.__init__`: create all panels, connect signals:
+- [x] `MainWindow.__init__`: create all panels, connect signals:
   - File > New → `NewProjectDialog` → create project → populate UI
   - File > Open → `QFileDialog` → `Project.load()` → populate UI
   - File > Save → `Project.save()`
@@ -297,17 +297,17 @@
   - Stop toolbar button → `engine.stop()`
   - Config editor `values_changed` → update project's current run params
   - Execution engine signals → update run panel, log viewer, status bar
-- [ ] File > Quit → confirm unsaved changes → `QApplication.quit()`
-- [ ] Status bar updates: current project name, run status, selected machine
+- [x] File > Quit → confirm unsaved changes → `QApplication.quit()`
+- [x] Status bar updates: current project name, run status, selected machine
 
 ### 2.12 — Smoke test & polish
-- [ ] `python -m remora_gui` launches cleanly with dark theme
-- [ ] All 9 config panels render with correct widgets and defaults
-- [ ] Changing a value in form updates raw editor; editing raw text updates form
-- [ ] Validation warnings appear in real-time as values change
-- [ ] New project → select Upwelling template → export input file → parse exported file → verify matches template
-- [ ] Run with mock/missing REMORA binary → shows clear error message
-- [ ] All `pytest` tests pass, `ruff check` clean, `mypy` clean
+- [x] `python -m remora_gui` launches cleanly with dark theme
+- [x] All 9 config panels render with correct widgets and defaults
+- [x] Changing a value in form updates raw editor; editing raw text updates form
+- [x] Validation warnings appear in real-time as values change
+- [x] New project → select Upwelling template → export input file → parse exported file → verify matches template
+- [x] Run with mock/missing REMORA binary → shows clear error message
+- [x] All `pytest` tests pass, `ruff check` clean, `mypy` clean
 
 ---
 
