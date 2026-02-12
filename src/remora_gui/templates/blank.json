@@ -1,0 +1,14 @@
+{
+  "name": "Blank",
+  "description": "Empty starting point with only required parameters at their defaults.",
+  "category": "blank",
+  "parameters": {
+    "remora.prob_lo": [0.0, 0.0, -150.0],
+    "remora.prob_hi": [41000.0, 80000.0, 0.0],
+    "remora.n_cell": [41, 80, 16],
+    "remora.is_periodic": [1, 0, 0],
+    "remora.max_step": 10,
+    "remora.fixed_dt": 300.0,
+    "remora.fixed_fast_dt": 10.0
+  }
+}

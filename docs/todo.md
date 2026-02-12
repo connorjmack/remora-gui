@@ -98,16 +98,16 @@
   - Unknown parameters (not in schema) are preserved through round-trip
 
 ### 1.5 — Cross-parameter validator (`core/validator.py`)
-- [ ] Define `ValidationMessage` dataclass: `level` (Literal `"error"`, `"warning"`, `"info"`), `message: str`, `parameter_keys: list[str]`, `rule_id: str`
-- [ ] Define `validate(params: dict, schema: dict) -> list[ValidationMessage]`
-- [ ] Implement rules:
+- [x] Define `ValidationMessage` dataclass: `level` (Literal `"error"`, `"warning"`, `"info"`), `message: str`, `parameter_keys: list[str]`, `rule_id: str`
+- [x] Define `validate(params: dict, schema: dict) -> list[ValidationMessage]`
+- [x] Implement rules:
   - `R001`: `fixed_fast_dt` should evenly divide `fixed_dt` → warning
   - `R002`: Periodic faces must match `is_periodic` flags → error
   - `R003`: `n_cell` values must all be > 0 → error
   - `R004`: `prob_hi[i]` must be > `prob_lo[i]` for each dimension → error
   - `R005`: If `use_coriolis=false`, Coriolis sub-params should not be set → info
   - `R006`: `max_grid_size` should be >= `blocking_factor` → warning
-- [ ] **Test:** `test_validator.py`:
+- [x] **Test:** `test_validator.py`:
   - Valid default config → no errors
   - `fixed_dt=300`, `fixed_fast_dt=7` → R001 warning
   - `is_periodic=[1,0,0]` with `xlo.type="SlipWall"` → R002 error
@@ -115,49 +115,49 @@
   - `prob_lo=[0,0,0]`, `prob_hi=[0,0,0]` → R004 error
 
 ### 1.6 — Project & SimulationRun models (`core/project.py`)
-- [ ] Define `SimulationRun` dataclass with all fields from PRD §6.3
-- [ ] Define `Project` dataclass with all fields from PRD §6.2
-- [ ] `Project.save(path)` → write `project.json` via `dataclasses.asdict` + JSON serialization (handle `datetime`)
-- [ ] `Project.load(path) -> Project` → read JSON, reconstruct dataclasses
-- [ ] `Project.create_run(name, params) -> SimulationRun` → creates run directory, writes input file, returns run
-- [ ] `Project.new(name, description, base_directory) -> Project` → create directory structure: `project.json`, `runs/`, `templates/`
-- [ ] **Test:** `test_project.py`:
+- [x] Define `SimulationRun` dataclass with all fields from PRD §6.3
+- [x] Define `Project` dataclass with all fields from PRD §6.2
+- [x] `Project.save(path)` → write `project.json` via `dataclasses.asdict` + JSON serialization (handle `datetime`)
+- [x] `Project.load(path) -> Project` → read JSON, reconstruct dataclasses
+- [x] `Project.create_run(name, params) -> SimulationRun` → creates run directory, writes input file, returns run
+- [x] `Project.new(name, description, base_directory) -> Project` → create directory structure: `project.json`, `runs/`, `templates/`
+- [x] **Test:** `test_project.py`:
   - Create project → save → load → verify all fields match
   - Create run → verify directory structure created
   - JSON serialization round-trip with datetimes
 
 ### 1.7 — MachineProfile model (`core/settings.py`)
-- [ ] Define `MachineProfile` dataclass with all fields from PRD §6.1
-- [ ] `MachineProfile.to_dict()` and `MachineProfile.from_dict(d)` for JSON serialization
-- [ ] Define `AppSettings` class wrapping `QSettings` (or plain JSON for testing) with:
+- [x] Define `MachineProfile` dataclass with all fields from PRD §6.1
+- [x] `MachineProfile.to_dict()` and `MachineProfile.from_dict(d)` for JSON serialization
+- [x] Define `AppSettings` class wrapping `QSettings` (or plain JSON for testing) with:
   - `get_machine_profiles() -> list[MachineProfile]`
   - `save_machine_profile(profile)`, `delete_machine_profile(id)`
   - `get_default_project_dir() -> Path`
   - `get_recent_projects() -> list[str]`
   - `add_recent_project(path)`
-- [ ] **Test:** `test_settings.py` — round-trip MachineProfile through dict; AppSettings CRUD with temp dir
+- [x] **Test:** `test_settings.py` — round-trip MachineProfile through dict; AppSettings CRUD with temp dir
 
 ### 1.8 — Local execution engine (`core/execution.py`)
-- [ ] Define `ExecutionEngine` Protocol/ABC with: `start()`, `stop()`, `is_running() -> bool`, `exit_code() -> int | None`
-- [ ] Define signals/callbacks interface: `on_stdout(line: str)`, `on_stderr(line: str)`, `on_finished(exit_code: int)`, `on_progress(step: int, max_step: int)`
-- [ ] Implement `LocalExecutionEngine(ExecutionEngine)`:
+- [x] Define `ExecutionEngine` Protocol/ABC with: `start()`, `stop()`, `is_running() -> bool`, `exit_code() -> int | None`
+- [x] Define signals/callbacks interface: `on_stdout(line: str)`, `on_stderr(line: str)`, `on_finished(exit_code: int)`, `on_progress(step: int, max_step: int)`
+- [x] Implement `LocalExecutionEngine(ExecutionEngine)`:
   - `__init__(executable, input_file, working_dir, mpi_command, num_procs)`
   - `start()`: build command list, spawn via `subprocess.Popen` with pipes, start reader threads
   - `stop()`: SIGTERM → 10s wait → SIGKILL
   - Parse stdout for `Step N` pattern to emit progress
-- [ ] **Test:** `test_execution.py`:
+- [x] **Test:** `test_execution.py`:
   - Mock subprocess: verify command construction for 1 proc (no MPI) and N procs (with MPI)
   - Verify stop sends SIGTERM
   - Verify progress parsing regex extracts step numbers
 
 ### 1.9 — Template library data (`templates/`)
-- [ ] Create `templates/upwelling.json` — convert Upwelling example params to JSON with metadata: `{"name": "Upwelling", "description": "...", "category": "coastal", "parameters": {...}}`
-- [ ] Create `templates/seamount.json` — Seamount example
-- [ ] Create `templates/double_gyre.json` — Double Gyre example
-- [ ] Create `templates/advection.json` — Advection test
-- [ ] Create `templates/blank.json` — blank starting point (only required params with defaults)
-- [ ] Add `load_template(name) -> dict` and `list_templates() -> list[dict]` functions in a `core/templates.py` or in `parameter_schema.py`
-- [ ] **Test:** all template JSON files parse without error, all contain required metadata keys, all parameter keys exist in schema
+- [x] Create `templates/upwelling.json` — convert Upwelling example params to JSON with metadata: `{"name": "Upwelling", "description": "...", "category": "coastal", "parameters": {...}}`
+- [x] Create `templates/seamount.json` — Seamount example
+- [x] Create `templates/double_gyre.json` — Double Gyre example
+- [x] Create `templates/advection.json` — Advection test
+- [x] Create `templates/blank.json` — blank starting point (only required params with defaults)
+- [x] Add `load_template(name) -> dict` and `list_templates() -> list[dict]` functions in a `core/templates.py` or in `parameter_schema.py`
+- [x] **Test:** all template JSON files parse without error, all contain required metadata keys, all parameter keys exist in schema
 
 ---
 

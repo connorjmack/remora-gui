@@ -1,0 +1,32 @@
+{
+  "name": "Advection",
+  "description": "Simple tracer advection test with uniform velocity field.",
+  "category": "test",
+  "parameters": {
+    "remora.max_step": 10,
+    "remora.stop_time": 30000.0,
+    "remora.prob_lo": [0.0, 0.0, -150.0],
+    "remora.prob_hi": [41000.0, 41000.0, 0.0],
+    "remora.n_cell": [81, 81, 16],
+    "remora.is_periodic": [1, 1, 0],
+    "remora.fixed_dt": 300.0,
+    "remora.fixed_fast_dt": 10.0,
+    "remora.flat_bathymetry": true,
+    "remora.use_coriolis": false,
+    "remora.tracer_horizontal_advection_scheme": "centered4",
+    "remora.R0": 1027.0,
+    "remora.S0": 35.0,
+    "remora.T0": 14.0,
+    "remora.Tcoef": 1.7e-4,
+    "remora.Scoef": 1.0e-4,
+    "remora.rho0": 1025.0,
+    "remora.sum_interval": 10,
+    "remora.v": 0,
+    "remora.check_file": "chk",
+    "remora.check_int": -57600,
+    "remora.plot_file": "plt",
+    "remora.plot_int": 100,
+    "remora.plot_vars_3d": ["salt", "temp", "scalar", "x_velocity", "y_velocity", "z_velocity"],
+    "remora.plotfile_type": "amrex"
+  }
+}
