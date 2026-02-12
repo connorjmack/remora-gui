@@ -38,23 +38,23 @@
 > Everything in `core/` must be testable without a running Qt application.
 
 ### 1.1 — REMORAParameter dataclass (`core/parameter_schema.py`)
-- [ ] Define `REMORAParameter` dataclass with fields: `key`, `label`, `description`, `group`, `dtype` (Literal), `default`, `required`, `min_value`, `max_value`, `enum_options`, `depends_on`, `units`, `reference_url`
-- [ ] Define `PARAMETER_GROUPS` ordered list: `["domain", "timing", "physics", "mixing", "advection", "boundary", "output", "parallel", "restart"]`
-- [ ] **Test:** `test_parameter_schema.py` — import dataclass, instantiate one parameter, verify fields
+- [x] Define `REMORAParameter` dataclass with fields: `key`, `label`, `description`, `group`, `dtype` (Literal), `default`, `required`, `min_value`, `max_value`, `enum_options`, `depends_on`, `units`, `reference_url`
+- [x] Define `PARAMETER_GROUPS` ordered list: `["domain", "timing", "physics", "mixing", "advection", "boundary", "output", "parallel", "restart"]`
+- [x] **Test:** `test_parameter_schema.py` — import dataclass, instantiate one parameter, verify fields
 
 ### 1.2 — Complete parameter schema population (`core/parameter_schema.py`)
-- [ ] Define `PARAMETER_SCHEMA: dict[str, list[REMORAParameter]]` mapping group → parameter list
-- [ ] Populate **Domain** group (5 params): `prob_lo`, `prob_hi`, `n_cell`, `is_periodic`, `flat_bathymetry` — all from PRD §7.1
-- [ ] Populate **Timing** group (4 params): `max_step`, `fixed_dt`, `fixed_fast_dt`, `stop_time` — PRD §7.2
-- [ ] Populate **Physics** group (12 params): `R0`, `rho0`, `S0`, `T0`, `Tcoef`, `Scoef`, `tcline`, `use_coriolis`, `coriolis_type`, `coriolis_f0`, `coriolis_beta`, `use_gravity` — PRD §7.3
-- [ ] Populate **Mixing** group (8 params): `vertical_mixing_type`, `gls_stability_type`, `gls_P`, `gls_M`, `gls_N`, `Akv_bak`, `Akt_bak`, `Aks_bak` — PRD §7.4
-- [ ] Populate **Advection** group (2 params): `tracer_horizontal_advection_scheme`, `tracer_vertical_advection_scheme` — PRD §7.5
-- [ ] Populate **Boundary** group (6 face params): BC type for `xlo`, `xhi`, `ylo`, `yhi`, `zlo`, `zhi` — PRD §7.6
-- [ ] Populate **Output** group (11 params): `plot_file`, `plot_int`, `plotfile_type`, `plot_vars_3d`, `plot_vars_2d`, `check_file`, `check_int`, `write_history_file`, `sum_interval`, `v` — PRD §7.7
-- [ ] Populate **Parallel** group (4 params): `max_level`, `ref_ratio`, `max_grid_size`, `blocking_factor` — PRD §7.8
-- [ ] Populate **Restart** group (1 param): `amr.restart` — PRD §7.9
-- [ ] Add helper functions: `get_parameter(key) -> REMORAParameter`, `get_group(name) -> list[REMORAParameter]`, `get_defaults() -> dict[str, Any]`
-- [ ] **Test:** `test_parameter_schema.py`:
+- [x] Define `PARAMETER_SCHEMA: dict[str, list[REMORAParameter]]` mapping group → parameter list
+- [x] Populate **Domain** group (5 params): `prob_lo`, `prob_hi`, `n_cell`, `is_periodic`, `flat_bathymetry` — all from PRD §7.1
+- [x] Populate **Timing** group (4 params): `max_step`, `fixed_dt`, `fixed_fast_dt`, `stop_time` — PRD §7.2
+- [x] Populate **Physics** group (12 params): `R0`, `rho0`, `S0`, `T0`, `Tcoef`, `Scoef`, `tcline`, `use_coriolis`, `coriolis_type`, `coriolis_f0`, `coriolis_beta`, `use_gravity` — PRD §7.3
+- [x] Populate **Mixing** group (8 params): `vertical_mixing_type`, `gls_stability_type`, `gls_P`, `gls_M`, `gls_N`, `Akv_bak`, `Akt_bak`, `Aks_bak` — PRD §7.4
+- [x] Populate **Advection** group (2 params): `tracer_horizontal_advection_scheme`, `tracer_vertical_advection_scheme` — PRD §7.5
+- [x] Populate **Boundary** group (6 face params): BC type for `xlo`, `xhi`, `ylo`, `yhi`, `zlo`, `zhi` — PRD §7.6
+- [x] Populate **Output** group (10 params): `plot_file`, `plot_int`, `plotfile_type`, `plot_vars_3d`, `plot_vars_2d`, `check_file`, `check_int`, `write_history_file`, `sum_interval`, `v` — PRD §7.7
+- [x] Populate **Parallel** group (4 params): `max_level`, `ref_ratio`, `max_grid_size`, `blocking_factor` — PRD §7.8
+- [x] Populate **Restart** group (1 param): `amr.restart` — PRD §7.9
+- [x] Add helper functions: `get_parameter(key) -> REMORAParameter`, `get_group(name) -> list[REMORAParameter]`, `get_defaults() -> dict[str, Any]`
+- [x] **Test:** `test_parameter_schema.py`:
   - All parameters have valid `dtype` values
   - No duplicate keys across all groups
   - All defaults are within declared min/max constraints
