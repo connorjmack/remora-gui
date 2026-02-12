@@ -316,7 +316,7 @@
 > Only start after Phase 1 is fully functional.
 
 ### 3.1 — Remote execution engine (`core/remote.py`)
-- [ ] `RemoteExecutionEngine(ExecutionEngine)`:
+- [x] `RemoteExecutionEngine(ExecutionEngine)`:
   - `connect(profile: MachineProfile)` → establish SSH session via paramiko
   - `upload_input(local_path, remote_path)` → SFTP upload
   - `start()` → execute REMORA command over SSH, stream stdout/stderr back
@@ -324,45 +324,45 @@
   - `stop()` → send kill signal over SSH
   - Handle `pre_run_commands` from MachineProfile
   - Windows path handling: convert paths based on `os_type`
-- [ ] Connection pooling: reuse SSH sessions per machine profile
-- [ ] Auto-reconnect on dropped connections with retry logic
-- [ ] **Test:** `test_remote.py` — mock paramiko, verify command construction, upload/download calls
+- [x] Connection pooling: reuse SSH sessions per machine profile
+- [x] Auto-reconnect on dropped connections with retry logic
+- [x] **Test:** `test_remote.py` — mock paramiko, verify command construction, upload/download calls
 
 ### 3.2 — Output file reader (`core/output_reader.py`)
-- [ ] Define `OutputReader` Protocol with `get_variables()`, `get_dimensions()`, `get_time_steps()`, `get_field()`, `get_slice()`
-- [ ] `NetCDFReader(OutputReader)`:
+- [x] Define `OutputReader` Protocol with `get_variables()`, `get_dimensions()`, `get_time_steps()`, `get_field()`, `get_slice()`
+- [x] `NetCDFReader(OutputReader)`:
   - Open with `xarray.open_dataset(chunks=...)` for lazy loading
   - Implement all protocol methods
   - Cache recent slices in LRU cache
-- [ ] `AMReXReader(OutputReader)`:
+- [x] `AMReXReader(OutputReader)`:
   - Parse `Header` file for metadata
   - Read `MultiFab` binary data for selected variables
   - Fallback: try `yt` library if available
-- [ ] `open_output(path) -> OutputReader` — auto-detect format and return appropriate reader
-- [ ] **Test:** `test_output_reader.py` — create small synthetic NetCDF fixture, verify reads
+- [x] `open_output(path) -> OutputReader` — auto-detect format and return appropriate reader
+- [x] **Test:** `test_output_reader.py` — create small synthetic NetCDF fixture, verify reads
 
 ### 3.3 — 2D slice viewer (`ui/visualization/slice_viewer.py`)
-- [ ] Embed `matplotlib.backends.backend_qtagg.FigureCanvasQTAgg`
-- [ ] Controls: variable dropdown, time step slider, axis selector (X/Y/Z), slice index slider
-- [ ] Colormap selector + min/max range inputs
-- [ ] Colorbar with units, domain coordinates on axes
-- [ ] `NavigationToolbar2QT` for zoom/pan/save
-- [ ] Debounce slider updates (100ms)
+- [x] Embed `matplotlib.backends.backend_qtagg.FigureCanvasQTAgg`
+- [x] Controls: variable dropdown, time step slider, axis selector (X/Y/Z), slice index slider
+- [x] Colormap selector + min/max range inputs
+- [x] Colorbar with units, domain coordinates on axes
+- [x] `NavigationToolbar2QT` for zoom/pan/save
+- [x] Debounce slider updates (100ms)
 
 ### 3.4 — Time series viewer (`ui/visualization/timeseries_viewer.py`)
-- [ ] Plot variable value at a point over all time steps
-- [ ] Click on slice viewer to set probe point
-- [ ] Multi-variable overlay with dual y-axes
+- [x] Plot variable value at a point over all time steps
+- [x] Click on slice viewer to set probe point
+- [x] Multi-variable overlay with dual y-axes
 
 ### 3.5 — Variable explorer (`ui/visualization/variable_explorer.py`)
-- [ ] Table: variable name, min, max, mean, units
-- [ ] Quick preview thumbnails (surface slice)
-- [ ] Double-click → open in slice viewer
+- [x] Table: variable name, min, max, mean, units
+- [x] Quick preview thumbnails (surface slice)
+- [x] Double-click → open in slice viewer
 
 ### 3.6 — Wire Output tab
-- [ ] Output tab: file/directory picker → open output → populate variable explorer
-- [ ] Slice viewer + time series viewer in split layout
-- [ ] Connect to run completion: auto-open output when run finishes
+- [x] Output tab: file/directory picker → open output → populate variable explorer
+- [x] Slice viewer + time series viewer in split layout
+- [x] Connect to run completion: auto-open output when run finishes
 
 ---
 

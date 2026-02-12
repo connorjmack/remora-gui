@@ -15,7 +15,6 @@ from PyQt6.QtWidgets import (
     QStatusBar,
     QTabWidget,
     QToolBar,
-    QWidget,
 )
 
 from remora_gui.core.input_file import write_input_file
@@ -27,6 +26,7 @@ from remora_gui.ui.dialogs.new_project_dialog import NewProjectDialog
 from remora_gui.ui.dialogs.preferences_dialog import PreferencesDialog
 from remora_gui.ui.execution.run_panel import RunPanel
 from remora_gui.ui.project.project_browser import ProjectBrowser
+from remora_gui.ui.visualization.output_tab import OutputTab
 
 
 class MainWindow(QMainWindow):
@@ -133,7 +133,7 @@ class MainWindow(QMainWindow):
 
         self.config_tab = ConfigEditorTab()
         self.run_tab = RunPanel()
-        self.output_tab = QWidget()
+        self.output_tab = OutputTab()
 
         self.tabs.addTab(self.config_tab, "Config")
         self.tabs.addTab(self.run_tab, "Run")
