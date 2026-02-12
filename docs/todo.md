@@ -63,7 +63,7 @@
   - `depends_on` references point to keys that exist in the schema
 
 ### 1.3 — Input file parser (`core/input_file.py`)
-- [ ] `parse_input_file(path: str | Path) -> OrderedDict[str, Any]`
+- [x] `parse_input_file(path: str | Path) -> OrderedDict[str, Any]`
   - Skip comment lines (start with `#`) and blank lines
   - Parse `key = value` (spaces around `=` optional)
   - Detect multi-value lines → store as `list` (e.g., `"0.0 0.0 -150.0"` → `[0.0, 0.0, -150.0]`)
@@ -71,9 +71,9 @@
   - Handle inline comments: `key = value # comment` → strip comment
   - Handle quoted strings: `"SlipWall"` → `SlipWall`
   - Preserve parameter ordering
-- [ ] `parse_input_string(text: str) -> OrderedDict[str, Any]` — same logic, from string instead of file
-- [ ] Create **test fixtures**: copy the Upwelling example input file to `tests/fixtures/upwelling_inputs`
-- [ ] **Test:** `test_input_file.py`:
+- [x] `parse_input_string(text: str) -> OrderedDict[str, Any]` — same logic, from string instead of file
+- [x] Create **test fixtures**: copy the Upwelling example input file to `tests/fixtures/upwelling_inputs`
+- [x] **Test:** `test_input_file.py`:
   - Parse fixture file, verify key count, spot-check 5+ values
   - Comment-only lines skipped
   - Inline comments stripped
@@ -83,14 +83,14 @@
   - Quoted strings unquoted
 
 ### 1.4 — Input file writer (`core/input_file.py`)
-- [ ] `write_input_file(params: OrderedDict[str, Any], path: str | Path, schema: dict | None = None, include_defaults: bool = False, header_comment: str | None = None)`
+- [x] `write_input_file(params: OrderedDict[str, Any], path: str | Path, schema: dict | None = None, include_defaults: bool = False, header_comment: str | None = None)`
   - Group parameters by prefix (e.g., all `remora.*` together, all `amr.*` together)
   - Write section comment headers between groups
   - Format values: bools → `true`/`false`, lists → space-separated, floats preserve scientific notation where appropriate
   - If `schema` provided and `include_defaults=False`, skip parameters matching their schema default
   - Add `header_comment` at top if provided
-- [ ] `write_input_string(params: ...) -> str` — same logic, return string
-- [ ] **Test:** `test_input_file.py`:
+- [x] `write_input_string(params: ...) -> str` — same logic, return string
+- [x] **Test:** `test_input_file.py`:
   - Round-trip: `parse(write(parse(fixture)))` produces identical dict
   - Bools written as lowercase `true`/`false`
   - Vectors written space-separated
