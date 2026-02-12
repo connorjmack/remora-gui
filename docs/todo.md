@@ -369,22 +369,22 @@
 ## Phase 3: Experiment Management
 
 ### 4.1 — Run history & comparison (`ui/project/run_history.py`)
-- [ ] Run history table with sort/filter
-- [ ] Parameter diff view: select two runs, side-by-side diff
-- [ ] Output comparison: synchronized slice viewers for two runs, difference view
+- [x] Run history table with sort/filter
+- [x] Parameter diff view: select two runs, side-by-side diff
+- [x] Output comparison: synchronized slice viewers for two runs, difference view
 
 ### 4.2 — Parameter sweep (`core/sweep.py` + `ui/dialogs/sweep_dialog.py`)
-- [ ] Sweep config dialog: select params, define ranges, show combinatorial matrix
-- [ ] Generate all input files upfront
-- [ ] Sequential or parallel execution with progress tracking
+- [x] Sweep config dialog: select params, define ranges, show combinatorial matrix
+- [x] Generate all input files upfront
+- [x] Sequential or parallel execution with progress tracking
 
 ### 4.3 — Enhanced validation (`core/validator.py`)
-- [ ] Add remaining rules from PRD §F3.3 (CFL estimate, domain decomposition, GPU checks)
+- [x] Add remaining rules from PRD §F3.3 (CFL estimate, domain decomposition, GPU checks)
 
 ### 4.4 — Import/Export enhancements
-- [ ] Import existing REMORA input files via File > Import
-- [ ] Export to JSON, shell script formats
-- [ ] Drag-and-drop input file import
+- [x] Import existing REMORA input files via File > Import
+- [x] Export to JSON, shell script formats
+- [x] Drag-and-drop input file import
 
 ---
 

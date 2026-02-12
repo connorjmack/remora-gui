@@ -170,6 +170,108 @@ def _r006_grid_size_ge_blocking(params: dict[str, Any]) -> list[ValidationMessag
     return []
 
 
+def _r007_cfl_estimate(params: dict[str, Any]) -> list[ValidationMessage]:
+    """CFL condition estimate: dt * max_velocity / dx < 1.
+
+    Uses a conservative velocity estimate of 2 m/s (typical ocean current).
+    """
+    dt = params.get("remora.fixed_dt")
+    lo = params.get("remora.prob_lo")
+    hi = params.get("remora.prob_hi")
+    n_cell = params.get("remora.n_cell")
+
+    if dt is None or not isinstance(lo, list) or not isinstance(hi, list):
+        return []
+    if not isinstance(n_cell, list) or len(n_cell) < 3:
+        return []
+    if any(n <= 0 for n in n_cell):
+        return []
+
+    # Compute minimum dx across all dimensions
+    dx_vals = [(hi[i] - lo[i]) / n_cell[i] for i in range(min(len(lo), len(hi), len(n_cell)))]
+    nonzero = [abs(d) for d in dx_vals if d != 0]
+    dx_min = min(nonzero) if nonzero else 0
+
+    if dx_min == 0:
+        return []
+
+    # Conservative velocity estimate for ocean currents
+    max_velocity = 2.0  # m/s
+    cfl = dt * max_velocity / dx_min
+
+    if cfl >= 1.0:
+        return [
+            ValidationMessage(
+                level="warning",
+                message=(
+                    f"CFL estimate is {cfl:.2f} (dt={dt}, dx_min={dx_min:.1f}, "
+                    f"assumed max velocity={max_velocity} m/s). "
+                    f"CFL should be < 1 for stability."
+                ),
+                parameter_keys=["remora.fixed_dt", "remora.n_cell"],
+                rule_id="R007",
+            )
+        ]
+    return []
+
+
+def _r008_procs_divide_domain(
+    params: dict[str, Any], num_procs: int
+) -> list[ValidationMessage]:
+    """num_procs should evenly divide the total number of grid cells."""
+    if num_procs <= 1:
+        return []
+    n_cell = params.get("remora.n_cell")
+    if not isinstance(n_cell, list) or len(n_cell) < 3:
+        return []
+
+    total_cells = 1
+    for n in n_cell:
+        total_cells *= n
+
+    if total_cells % num_procs != 0:
+        return [
+            ValidationMessage(
+                level="warning",
+                message=(
+                    f"Total grid cells ({total_cells}) is not evenly divisible "
+                    f"by num_procs ({num_procs}). This may cause load imbalance."
+                ),
+                parameter_keys=["remora.n_cell"],
+                rule_id="R008",
+            )
+        ]
+    return []
+
+
+def _r009_n_cell_divisible_by_blocking(params: dict[str, Any]) -> list[ValidationMessage]:
+    """n_cell values should be divisible by blocking_factor."""
+    n_cell = params.get("remora.n_cell")
+    block = params.get("amr.blocking_factor")
+    if not isinstance(n_cell, list) or block is None or block <= 0:
+        return []
+
+    bad: list[str] = []
+    labels = ["x", "y", "z"]
+    for i, n in enumerate(n_cell):
+        if n % block != 0:
+            label = labels[i] if i < len(labels) else str(i)
+            bad.append(f"n_cell[{label}]={n}")
+
+    if bad:
+        return [
+            ValidationMessage(
+                level="warning",
+                message=(
+                    f"{', '.join(bad)} not divisible by blocking_factor ({block})."
+                ),
+                parameter_keys=["remora.n_cell", "amr.blocking_factor"],
+                rule_id="R009",
+            )
+        ]
+    return []
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -181,12 +283,15 @@ _RULES = [
     _r004_prob_hi_gt_lo,
     _r005_coriolis_unused,
     _r006_grid_size_ge_blocking,
+    _r007_cfl_estimate,
+    _r009_n_cell_divisible_by_blocking,
 ]
 
 
-def validate(params: dict[str, Any]) -> list[ValidationMessage]:
+def validate(params: dict[str, Any], *, num_procs: int = 1) -> list[ValidationMessage]:
     """Run all validation rules against *params* and return findings."""
     messages: list[ValidationMessage] = []
     for rule in _RULES:
         messages.extend(rule(params))
+    messages.extend(_r008_procs_divide_domain(params, num_procs))
     return messages

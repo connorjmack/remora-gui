@@ -17,7 +17,8 @@ from PyQt6.QtWidgets import (
     QToolBar,
 )
 
-from remora_gui.core.input_file import write_input_file
+from remora_gui.core.export import export_json, export_shell_script
+from remora_gui.core.input_file import parse_input_file, write_input_file
 from remora_gui.core.project import Project
 from remora_gui.core.settings import AppSettings
 from remora_gui.core.templates import load_template
@@ -36,6 +37,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("REMORA-GUI")
         self.resize(1200, 800)
+        self.setAcceptDrops(True)
 
         self._project: Project | None = None
         self._settings = AppSettings()
@@ -59,6 +61,10 @@ class MainWindow(QMainWindow):
         self.action_open.setShortcut(QKeySequence("Ctrl+O"))
         self.action_open.triggered.connect(self._on_open_project)
 
+        self.action_import = QAction("&Import Input File...", self)
+        self.action_import.setShortcut(QKeySequence("Ctrl+I"))
+        self.action_import.triggered.connect(self._on_import)
+
         self.action_save = QAction("&Save", self)
         self.action_save.setShortcut(QKeySequence("Ctrl+S"))
         self.action_save.triggered.connect(self._on_save)
@@ -66,6 +72,12 @@ class MainWindow(QMainWindow):
         self.action_export = QAction("&Export Input File...", self)
         self.action_export.setShortcut(QKeySequence("Ctrl+E"))
         self.action_export.triggered.connect(self._on_export)
+
+        self.action_export_json = QAction("Export &JSON...", self)
+        self.action_export_json.triggered.connect(self._on_export_json)
+
+        self.action_export_shell = QAction("Export &Shell Script...", self)
+        self.action_export_shell.triggered.connect(self._on_export_shell)
 
         self.action_quit = QAction("&Quit", self)
         self.action_quit.setShortcut(QKeySequence("Ctrl+Q"))
@@ -96,9 +108,12 @@ class MainWindow(QMainWindow):
         file_menu = menu_bar.addMenu("&File")
         file_menu.addAction(self.action_new)
         file_menu.addAction(self.action_open)
+        file_menu.addAction(self.action_import)
         file_menu.addSeparator()
         file_menu.addAction(self.action_save)
         file_menu.addAction(self.action_export)
+        file_menu.addAction(self.action_export_json)
+        file_menu.addAction(self.action_export_shell)
         file_menu.addSeparator()
         file_menu.addAction(self.action_quit)
 
@@ -192,6 +207,23 @@ class MainWindow(QMainWindow):
         project = Project.load(Path(path))
         self._set_project(project)
 
+    def _on_import(self) -> None:
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Import Input File",
+            "",
+            "REMORA Input Files (*);;All Files (*)",
+        )
+        if not path:
+            return
+        try:
+            params = parse_input_file(path)
+        except (OSError, ValueError) as exc:
+            QMessageBox.warning(self, "Import Error", str(exc))
+            return
+        self.config_tab.set_all_values(params)
+        self.statusBar().showMessage(f"Imported {len(params)} parameters from {path}", 3000)
+
     def _on_save(self) -> None:
         if self._project is None:
             return
@@ -208,6 +240,26 @@ class MainWindow(QMainWindow):
         write_input_file(params, Path(path))
         self.statusBar().showMessage(f"Exported to {path}", 3000)
 
+    def _on_export_json(self) -> None:
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export JSON", "config.json", "JSON Files (*.json);;All Files (*)"
+        )
+        if not path:
+            return
+        params = OrderedDict(self.config_tab.get_all_values())
+        export_json(params, Path(path))
+        self.statusBar().showMessage(f"Exported JSON to {path}", 3000)
+
+    def _on_export_shell(self) -> None:
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export Shell Script", "run.sh", "Shell Scripts (*.sh);;All Files (*)"
+        )
+        if not path:
+            return
+        params = OrderedDict(self.config_tab.get_all_values())
+        export_shell_script(params, Path(path))
+        self.statusBar().showMessage(f"Exported shell script to {path}", 3000)
+
     def _on_preferences(self) -> None:
         dlg = PreferencesDialog(self._settings, parent=self)
         dlg.exec()
@@ -215,7 +267,6 @@ class MainWindow(QMainWindow):
     def _on_run(self) -> None:
         self.tabs.setCurrentWidget(self.run_tab)
         self.run_tab.set_status("Running...")
-        # Full execution wiring happens in task 2.11 integration.
 
     def _on_stop(self) -> None:
         self.run_tab.set_status("Stopping...")
@@ -228,6 +279,32 @@ class MainWindow(QMainWindow):
             "A cross-platform desktop application for configuring,\n"
             "executing, and monitoring REMORA ocean simulations.",
         )
+
+    # ---- Drag and Drop ----
+
+    def dragEnterEvent(self, event: object) -> None:  # type: ignore[override]
+        """Accept drag events for input files."""
+        if hasattr(event, "mimeData") and event.mimeData().hasUrls():  # type: ignore[union-attr]
+            event.acceptProposedAction()  # type: ignore[union-attr]
+
+    def dropEvent(self, event: object) -> None:  # type: ignore[override]
+        """Handle dropped files by importing them."""
+        if not hasattr(event, "mimeData"):
+            return
+        urls = event.mimeData().urls()  # type: ignore[union-attr]
+        if not urls:
+            return
+        path = urls[0].toLocalFile()
+        if path:
+            try:
+                params = parse_input_file(path)
+            except (OSError, ValueError) as exc:
+                QMessageBox.warning(self, "Import Error", str(exc))
+                return
+            self.config_tab.set_all_values(params)
+            self.statusBar().showMessage(
+                f"Imported {len(params)} parameters from {path}", 3000
+            )
 
     # ---- Helpers ----
 

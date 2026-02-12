@@ -176,3 +176,93 @@ class TestR006:
         r006 = [m for m in msgs if m.rule_id == "R006"]
         assert len(r006) == 1
         assert r006[0].level == "warning"
+
+
+# ---------------------------------------------------------------------------
+# R007 — CFL condition estimate
+# ---------------------------------------------------------------------------
+
+
+class TestR007:
+    def test_no_warning_when_cfl_ok(self) -> None:
+        # dx_min = 150/16 = 9.375m, dt = 1s → CFL = 1 * 2 / 9.375 = 0.21 < 1
+        params = _defaults(**{
+            "remora.fixed_dt": 1.0,
+            "remora.prob_lo": [0.0, 0.0, -150.0],
+            "remora.prob_hi": [41000.0, 80000.0, 0.0],
+            "remora.n_cell": [41, 80, 16],
+        })
+        msgs = validate(params)
+        assert all(m.rule_id != "R007" for m in msgs)
+
+    def test_warning_when_cfl_violated(self) -> None:
+        # dx = 41000/41 = 1000m, dt = 1000s → CFL = 1000 * 2 / 1000 = 2.0 > 1
+        params = _defaults(**{
+            "remora.fixed_dt": 1000.0,
+            "remora.prob_lo": [0.0, 0.0, -150.0],
+            "remora.prob_hi": [41000.0, 80000.0, 0.0],
+            "remora.n_cell": [41, 80, 16],
+        })
+        msgs = validate(params)
+        r007 = [m for m in msgs if m.rule_id == "R007"]
+        assert len(r007) == 1
+        assert r007[0].level == "warning"
+
+    def test_skipped_when_dt_missing(self) -> None:
+        params = _defaults()
+        params.pop("remora.fixed_dt", None)
+        msgs = validate(params)
+        assert all(m.rule_id != "R007" for m in msgs)
+
+
+# ---------------------------------------------------------------------------
+# R008 — num_procs should evenly divide the domain
+# ---------------------------------------------------------------------------
+
+
+class TestR008:
+    def test_no_warning_when_evenly_divisible(self) -> None:
+        # 41 * 80 * 16 cells, max_grid_size=2048
+        # With 1 proc, always fine
+        params = _defaults(**{"remora.n_cell": [80, 80, 16]})
+        msgs = validate(params, num_procs=4)
+        assert all(m.rule_id != "R008" for m in msgs)
+
+    def test_warning_when_not_divisible(self) -> None:
+        # n_cell = [7, 7, 7], num_procs = 4 → total cells 343 not divisible by 4
+        params = _defaults(**{"remora.n_cell": [7, 7, 7]})
+        msgs = validate(params, num_procs=4)
+        r008 = [m for m in msgs if m.rule_id == "R008"]
+        assert len(r008) == 1
+        assert r008[0].level == "warning"
+
+    def test_skipped_when_num_procs_1(self) -> None:
+        params = _defaults(**{"remora.n_cell": [7, 7, 7]})
+        msgs = validate(params, num_procs=1)
+        assert all(m.rule_id != "R008" for m in msgs)
+
+
+# ---------------------------------------------------------------------------
+# R009 — n_cell should be divisible by blocking_factor
+# ---------------------------------------------------------------------------
+
+
+class TestR009:
+    def test_no_warning_when_divisible(self) -> None:
+        params = _defaults(**{
+            "remora.n_cell": [80, 80, 16],
+            "amr.blocking_factor": 8,
+        })
+        msgs = validate(params)
+        assert all(m.rule_id != "R009" for m in msgs)
+
+    def test_warning_when_not_divisible(self) -> None:
+        params = _defaults(**{
+            "remora.n_cell": [41, 80, 16],
+            "amr.blocking_factor": 8,
+        })
+        msgs = validate(params)
+        r009 = [m for m in msgs if m.rule_id == "R009"]
+        assert len(r009) == 1
+        assert r009[0].level == "warning"
+        assert "41" in r009[0].message
