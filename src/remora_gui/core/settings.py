@@ -3,9 +3,21 @@
 from __future__ import annotations
 
 import json
+import platform
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
+
+
+def _default_config_dir() -> Path:
+    """Return the platform-appropriate config directory for REMORA-GUI."""
+    system = platform.system()
+    if system == "Darwin":
+        return Path.home() / "Library" / "Application Support" / "REMORA-GUI"
+    if system == "Windows":
+        return Path.home() / "AppData" / "Local" / "REMORA-GUI"
+    # Linux / other
+    return Path.home() / ".config" / "remora-gui"
 
 # ---------------------------------------------------------------------------
 # MachineProfile
@@ -109,8 +121,8 @@ class AppSettings:
         platform-specific app data directory.
     """
 
-    def __init__(self, config_dir: str | Path) -> None:
-        self._dir = Path(config_dir)
+    def __init__(self, config_dir: str | Path | None = None) -> None:
+        self._dir = Path(config_dir) if config_dir is not None else _default_config_dir()
         self._dir.mkdir(parents=True, exist_ok=True)
         self._path = self._dir / _SETTINGS_FILE
         self._data: dict[str, Any] = self._load()

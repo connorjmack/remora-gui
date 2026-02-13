@@ -31,7 +31,7 @@
     "remora.check_int": -57600,
     "remora.plot_file": "plt",
     "remora.plot_int": 100,
-    "remora.plot_vars_3d": ["salt", "temp", "x_velocity", "y_velocity", "z_velocity"],
+    "remora.plot_vars": ["salt", "temp", "x_velocity", "y_velocity", "z_velocity"],
     "remora.plotfile_type": "amrex"
   }
 }

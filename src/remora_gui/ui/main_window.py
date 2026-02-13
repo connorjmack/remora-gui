@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import tempfile
 from collections import OrderedDict
 from pathlib import Path
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QObject, Qt, pyqtSignal
 from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import (
     QFileDialog,
@@ -17,8 +18,9 @@ from PyQt6.QtWidgets import (
     QToolBar,
 )
 
+from remora_gui.core.execution import LocalExecutionEngine
 from remora_gui.core.export import export_json, export_shell_script
-from remora_gui.core.input_file import parse_input_file, write_input_file
+from remora_gui.core.input_file import clean_params_for_remora, parse_input_file, write_input_file
 from remora_gui.core.project import Project
 from remora_gui.core.settings import AppSettings
 from remora_gui.core.templates import load_template
@@ -28,6 +30,15 @@ from remora_gui.ui.dialogs.preferences_dialog import PreferencesDialog
 from remora_gui.ui.execution.run_panel import RunPanel
 from remora_gui.ui.project.project_browser import ProjectBrowser
 from remora_gui.ui.visualization.output_tab import OutputTab
+
+
+class _ExecutionSignals(QObject):
+    """Thread-safe bridge: execution engine callbacks emit Qt signals."""
+
+    stdout_line = pyqtSignal(str)
+    stderr_line = pyqtSignal(str)
+    finished = pyqtSignal(int)
+    progress = pyqtSignal(int, int)
 
 
 class MainWindow(QMainWindow):
@@ -41,6 +52,8 @@ class MainWindow(QMainWindow):
 
         self._project: Project | None = None
         self._settings = AppSettings()
+        self._engine: LocalExecutionEngine | None = None
+        self._exec_signals = _ExecutionSignals(self)
 
         self._create_actions()
         self._create_menu_bar()
@@ -48,6 +61,7 @@ class MainWindow(QMainWindow):
         self._create_tabs()
         self._create_status_bar()
         self._create_project_browser()
+        self._connect_execution_signals()
 
     # ---- Actions ----
 
@@ -265,11 +279,86 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _on_run(self) -> None:
-        self.tabs.setCurrentWidget(self.run_tab)
+        executable = self.run_tab.executable_edit.text().strip()
+        if not executable:
+            QMessageBox.warning(
+                self, "Run Error", "No REMORA executable set. Set it in the Run tab."
+            )
+            self.tabs.setCurrentWidget(self.run_tab)
+            return
+
+        if not Path(executable).is_file():
+            QMessageBox.warning(
+                self, "Run Error", f"Executable not found: {executable}"
+            )
+            return
+
+        working_dir = self.run_tab.workdir_edit.text().strip()
+        if not working_dir:
+            working_dir = tempfile.mkdtemp(prefix="remora_run_")
+            self.run_tab.workdir_edit.setText(working_dir)
+        Path(working_dir).mkdir(parents=True, exist_ok=True)
+
+        # Write current config to input file in working dir.
+        input_path = Path(working_dir) / "inputs"
+        params = OrderedDict(self.config_tab.get_all_values())
+        params = OrderedDict(clean_params_for_remora(params))
+        write_input_file(params, input_path)
+
+        # Extract max_step for progress tracking.
+        raw_max = params.get("remora.max_step")
+        max_step = int(raw_max) if isinstance(raw_max, (int, float)) else None
+
+        num_procs = self.run_tab.mpi_spin.value()
+
+        self.run_tab.log_viewer._text.clear()
+        self.run_tab.progress_bar.setValue(0)
+
+        self._engine = LocalExecutionEngine(
+            executable=executable,
+            input_file=str(input_path),
+            working_dir=working_dir,
+            num_procs=num_procs,
+            max_step=max_step,
+            on_stdout=self._exec_signals.stdout_line.emit,
+            on_stderr=self._exec_signals.stderr_line.emit,
+            on_finished=self._exec_signals.finished.emit,
+            on_progress=self._exec_signals.progress.emit,
+        )
+
+        self._engine.start()
+        self.run_tab.set_running(True)
         self.run_tab.set_status("Running...")
+        self.action_run.setEnabled(False)
+        self.action_stop.setEnabled(True)
+        self.tabs.setCurrentWidget(self.run_tab)
+        self.statusBar().showMessage(f"Running in {working_dir}")
 
     def _on_stop(self) -> None:
-        self.run_tab.set_status("Stopping...")
+        if self._engine and self._engine.is_running():
+            self.run_tab.set_status("Stopping...")
+            self._engine.stop()
+
+    def _connect_execution_signals(self) -> None:
+        """Connect thread-safe execution signals to UI slots."""
+        self._exec_signals.stdout_line.connect(self.run_tab.log_viewer.append_stdout)
+        self._exec_signals.stderr_line.connect(self.run_tab.log_viewer.append_stderr)
+        self._exec_signals.progress.connect(self.run_tab.set_progress)
+        self._exec_signals.finished.connect(self._on_execution_finished)
+        self.run_tab.run_requested.connect(self._on_run)
+        self.run_tab.stop_requested.connect(self._on_stop)
+
+    def _on_execution_finished(self, exit_code: int) -> None:
+        """Handle execution completion."""
+        self.run_tab.set_running(False)
+        self.action_run.setEnabled(True)
+        self.action_stop.setEnabled(False)
+        if exit_code == 0:
+            self.run_tab.set_status(f"Completed (exit {exit_code})")
+            self.statusBar().showMessage("Run completed successfully.", 5000)
+        else:
+            self.run_tab.set_status(f"Failed (exit {exit_code})")
+            self.statusBar().showMessage(f"Run failed with exit code {exit_code}.", 5000)
 
     def _on_about(self) -> None:
         QMessageBox.about(

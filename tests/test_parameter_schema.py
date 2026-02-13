@@ -253,7 +253,7 @@ class TestSchemaPopulation:
             "mixing": 8,
             "advection": 2,
             "boundary": 6,
-            "output": 10,
+            "output": 9,
             "parallel": 4,
             "restart": 1,
         }

@@ -126,6 +126,37 @@ def _format_value(value: Any) -> str:
     return str(value)
 
 
+_PERIODIC_BC_FACES = {
+    0: ("remora.bc.xlo.type", "remora.bc.xhi.type"),
+    1: ("remora.bc.ylo.type", "remora.bc.yhi.type"),
+    2: ("remora.bc.zlo.type", "remora.bc.zhi.type"),
+}
+
+
+def clean_params_for_remora(params: dict[str, Any]) -> dict[str, Any]:
+    """Sanitize parameters before writing for REMORA consumption.
+
+    - Remove BC entries for periodic faces (AMReX aborts otherwise).
+    - Remove ``stop_time`` when 0.0 (means "stop immediately", not "no limit").
+    """
+    result = dict(params)
+
+    # Periodic BC cleanup.
+    is_periodic = result.get("remora.is_periodic")
+    if isinstance(is_periodic, list):
+        for dim, flags in enumerate(is_periodic):
+            if dim in _PERIODIC_BC_FACES and flags:
+                for key in _PERIODIC_BC_FACES[dim]:
+                    result.pop(key, None)
+
+    # stop_time = 0 means "stop at time 0" in AMReX, not "no limit".
+    stop_time = result.get("remora.stop_time")
+    if stop_time is not None and float(stop_time) == 0.0:
+        result.pop("remora.stop_time", None)
+
+    return result
+
+
 def write_input_string(
     params: dict[str, Any],
     *,
@@ -166,6 +197,9 @@ def write_input_string(
         section_lines: list[str] = []
         for key in keys:
             value = params[key]
+            # Skip empty values — AMReX ParmParse rejects "key = " with no value.
+            if value == "" or value == [] or value is None:
+                continue
             # Optionally skip defaults
             if (
                 schema is not None

@@ -50,11 +50,15 @@ def netcdf_file(tmp_path: Path) -> Path:
 
 @pytest.fixture()
 def amrex_dir(tmp_path: Path) -> Path:
-    """Create a minimal AMReX plotfile directory structure."""
+    """Create a minimal AMReX plotfile directory with binary data."""
+    import struct
+
     plt_dir = tmp_path / "plt00100"
     plt_dir.mkdir()
 
-    # Write Header file
+    nx, ny, nz, ncomp = 4, 3, 2, 2  # small grid: temp + salt
+
+    # Write Header file (matching real REMORA format)
     header = plt_dir / "Header"
     header.write_text(
         "HyperCLaw-V1.1\n"
@@ -63,15 +67,45 @@ def amrex_dir(tmp_path: Path) -> Path:
         "salt\n"
         "3\n"
         "600.0\n"
-        "1\n"
-        "0 0 0\n"
-        "0 0 0 9 7 4\n"
-        "0 0\n"
-        "100.0 80.0 50.0\n"
-        "0.0 0.0 0.0\n"
-        "((0,0) (9,7,4) (0,0,0))\n"
-        "Level_0/Cell\n"
+        "0\n"                          # max_level = 0
+        "0 0 0\n"                      # prob_lo
+        "400 300 200\n"                 # prob_hi
+        "\n"                            # refinement ratios (empty)
+        "((0,0,0) (3,2,1) (0,0,0))\n"  # box layout
+        "0\n"                           # step numbers
+        "100.0 100.0 100.0\n"           # cell sizes
+        "0\n"                           # coord type
+        "0\n"                           # boundary data
     )
+
+    # Write Level_0 binary data
+    level_dir = plt_dir / "Level_0"
+    level_dir.mkdir()
+
+    # Cell_H (FAB header index)
+    (level_dir / "Cell_H").write_text(
+        "1\n1\n2\n0\n"
+        "(1 0\n((0,0,0) (3,2,1) (0,0,0))\n)\n"
+        "1\nFabOnDisk: Cell_D_00000 0\n\n"
+        "1,2\n0.0,0.0,\n\n1,2\n0.0,0.0,\n"
+    )
+
+    # Cell_D_00000 (binary FAB data)
+    ncells = nx * ny * nz
+    fab_header = (
+        f"FAB ((8, (64 11 52 0 1 12 0 1023)),"
+        f"(8, (8 7 6 5 4 3 2 1)))"
+        f"((0,0,0) ({nx - 1},{ny - 1},{nz - 1}) (0,0,0)) {ncomp}\n"
+    )
+    # Fill with recognizable data: temp=20.0, salt=35.0
+    temp_data = [20.0] * ncells
+    salt_data = [35.0] * ncells
+    binary = struct.pack(f"<{ncells}d", *temp_data) + struct.pack(f"<{ncells}d", *salt_data)
+
+    with open(level_dir / "Cell_D_00000", "wb") as f:
+        f.write(fab_header.encode("ascii"))
+        f.write(binary)
+
     return plt_dir
 
 
@@ -199,7 +233,9 @@ class TestAMReXReader:
     def test_get_dimensions(self, amrex_dir: Path) -> None:
         reader = AMReXReader(amrex_dir)
         dims = reader.get_dimensions()
-        assert "ndim" in dims
+        assert dims["x"] == 4
+        assert dims["y"] == 3
+        assert dims["z"] == 2
 
     def test_get_time(self, amrex_dir: Path) -> None:
         reader = AMReXReader(amrex_dir)

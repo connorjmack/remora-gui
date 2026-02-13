@@ -7,8 +7,11 @@ from typing import Any
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import (
     QComboBox,
+    QFileDialog,
+    QFormLayout,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QProgressBar,
     QPushButton,
     QSpinBox,
@@ -29,6 +32,28 @@ class RunPanel(QWidget):
         super().__init__(parent)
         layout = QVBoxLayout()
         self.setLayout(layout)
+
+        # -- Executable and working dir --
+        paths_form = QFormLayout()
+        layout.addLayout(paths_form)
+
+        exe_row = QHBoxLayout()
+        self.executable_edit = QLineEdit()
+        self.executable_edit.setPlaceholderText("Path to REMORA executable")
+        exe_row.addWidget(self.executable_edit)
+        exe_browse = QPushButton("Browse...")
+        exe_browse.clicked.connect(self._browse_executable)
+        exe_row.addWidget(exe_browse)
+        paths_form.addRow("Executable:", exe_row)
+
+        workdir_row = QHBoxLayout()
+        self.workdir_edit = QLineEdit()
+        self.workdir_edit.setPlaceholderText("Working directory for run output")
+        workdir_row.addWidget(self.workdir_edit)
+        workdir_browse = QPushButton("Browse...")
+        workdir_browse.clicked.connect(self._browse_workdir)
+        workdir_row.addWidget(workdir_browse)
+        paths_form.addRow("Working dir:", workdir_row)
 
         # -- Controls row --
         controls = QHBoxLayout()
@@ -100,3 +125,19 @@ class RunPanel(QWidget):
         self.machine_combo.addItem("Local")
         for p in profiles:
             self.machine_combo.addItem(p.get("name", "Unknown"))
+
+    # ---- Browse helpers ----
+
+    def _browse_executable(self) -> None:
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Select REMORA Executable", self.executable_edit.text(), "All Files (*)"
+        )
+        if path:
+            self.executable_edit.setText(path)
+
+    def _browse_workdir(self) -> None:
+        path = QFileDialog.getExistingDirectory(
+            self, "Select Working Directory", self.workdir_edit.text()
+        )
+        if path:
+            self.workdir_edit.setText(path)

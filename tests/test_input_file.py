@@ -62,7 +62,7 @@ class TestParseUpwellingFixture:
         assert self.params["remora.n_cell"] == [41, 80, 16]
 
     def test_string_list(self) -> None:
-        assert self.params["remora.plot_vars_3d"] == [
+        assert self.params["remora.plot_vars"] == [
             "salt", "temp", "x_velocity", "y_velocity", "z_velocity",
         ]
 
@@ -209,9 +209,9 @@ class TestWriteInputString:
 
     def test_string_list(self) -> None:
         text = write_input_string(
-            {"remora.plot_vars_3d": ["salt", "temp", "x_velocity"]}
+            {"remora.plot_vars": ["salt", "temp", "x_velocity"]}
         )
-        assert "remora.plot_vars_3d = salt temp x_velocity" in text
+        assert "remora.plot_vars = salt temp x_velocity" in text
 
     def test_groups_by_prefix(self) -> None:
         params: dict[str, object] = OrderedDict([
@@ -239,12 +239,12 @@ class TestWriteInputString:
     def test_skip_defaults_when_schema_provided(self) -> None:
         from remora_gui.core.parameter_schema import PARAMETER_SCHEMA
 
-        # Get the schema default for remora.v (should be 0)
-        defaults = {"remora.v": 0, "remora.max_step": 999}
+        # Get the schema default for remora.v (should be 1)
+        defaults = {"remora.v": 1, "remora.max_step": 999}
         text = write_input_string(
             defaults, schema=PARAMETER_SCHEMA, include_defaults=False
         )
-        # remora.v=0 matches default → omitted
+        # remora.v=1 matches default → omitted
         assert "remora.v" not in text
         # remora.max_step=999 differs from default 10 → included
         assert "remora.max_step = 999" in text
@@ -259,9 +259,10 @@ class TestWriteInputString:
         assert "remora.v = 0" in text
         assert "remora.max_step = 10" in text
 
-    def test_empty_string_value(self) -> None:
+    def test_empty_string_value_omitted(self) -> None:
+        """Empty values are skipped — AMReX ParmParse rejects 'key = ' with no value."""
         text = write_input_string({"amr.restart": ""})
-        assert "amr.restart = " in text
+        assert "amr.restart" not in text
 
 
 class TestRoundTrip:

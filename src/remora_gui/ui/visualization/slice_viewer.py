@@ -6,7 +6,7 @@ from typing import Any, ClassVar
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolbar2QT
 from matplotlib.figure import Figure
-from PyQt6.QtCore import QTimer, pyqtSignal
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtWidgets import (
     QComboBox,
     QDoubleSpinBox,
@@ -59,7 +59,7 @@ class SliceViewer(QWidget):
 
         controls.addWidget(QLabel("Time:"))
         self._time_slider = QSlider()
-        self._time_slider.setOrientation(1)  # Horizontal
+        self._time_slider.setOrientation(Qt.Orientation.Horizontal)  # Horizontal
         self._time_slider.setMinimum(0)
         self._time_slider.valueChanged.connect(self._on_control_changed)
         controls.addWidget(self._time_slider)
@@ -76,7 +76,7 @@ class SliceViewer(QWidget):
 
         controls.addWidget(QLabel("Slice:"))
         self._slice_slider = QSlider()
-        self._slice_slider.setOrientation(1)
+        self._slice_slider.setOrientation(Qt.Orientation.Horizontal)
         self._slice_slider.setMinimum(0)
         self._slice_slider.valueChanged.connect(self._on_control_changed)
         controls.addWidget(self._slice_slider)
